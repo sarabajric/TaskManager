@@ -34,3 +34,6 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+// Potrebno da testni projekat može pokrenuti aplikaciju (WebApplicationFactory<Program>)
+public partial class Program { }
