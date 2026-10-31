@@ -29,6 +29,14 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseHttpsRedirection();
+
+// Poslužuje statičke fajlove iz foldera wwwroot (HTML stranica)
+app.UseDefaultFiles(); 
+app.UseStaticFiles();  
+
+app.UseAuthorization();
+
 app.UseAuthorization();
 
 app.MapControllers();
