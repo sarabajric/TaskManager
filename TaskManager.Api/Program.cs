@@ -21,6 +21,14 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 var app = builder.Build();
 
+// Samo u Dockeru: pri pokretanju se kreira baza (primjena migracija).
+// Lokalno i u testovima ovaj prekidač nije uključen, pa se ništa ne mijenja.
+if (app.Configuration.GetValue<bool>("ApplyMigrationsOnStartup"))
+{
+    using var scope = app.Services.CreateScope();
+    scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.Migrate();
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
