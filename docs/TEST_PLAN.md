@@ -100,11 +100,14 @@ Latest result: `total: 22; failed: 0; succeeded: 22; skipped: 0`.
 
 ## 9. Planned next steps
 
-- Run the whole test suite automatically on every push (CI pipeline)
 - Additional negative tests: title longer than 200 characters, invalid status value, malformed JSON
 - Consider DTO classes so the API accepts only the fields a client is allowed to send
 
-## 10. Known limitations and risks
+## 10. Continuous integration
+
+All tests (unit, API and UI) run automatically on every push and pull request to `main` using GitHub Actions (`.github/workflows/ci.yml`). A second job builds the Docker image, but only after all tests have passed.
+
+## 11. Known limitations and risks
 
 - The API does not validate the maximum title length itself; the limit (200 characters) is enforced only by the database configuration. An additional negative test is planned for this.
-- Tests run against SQLite. The production environment will use Azure SQL, so database-specific behaviour will be re-checked after deployment.
+- Tests run against SQLite. The project is not deployed to a cloud environment, so behaviour on another database engine (for example Azure SQL) has not been verified.
