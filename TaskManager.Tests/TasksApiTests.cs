@@ -138,4 +138,78 @@ public class TasksApiTests : IDisposable
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
+
+        private async Task<HttpResponseMessage> PostRawJsonAsync(string json)
+    {
+        var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+        return await _client.PostAsync("/api/tasks", content);
+    }
+
+    [Fact]
+    public async Task Post_TitleLongerThan200_Returns400()
+    {
+        var response = await _client.PostAsJsonAsync(
+            "/api/tasks", new TaskItem { Title = new string('a', 201) }, JsonOptions);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Post_TitleExactly200_Returns201()
+    {
+        var response = await _client.PostAsJsonAsync(
+            "/api/tasks", new TaskItem { Title = new string('a', 200) }, JsonOptions);
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Post_DescriptionLongerThan2000_Returns400()
+    {
+        var response = await _client.PostAsJsonAsync(
+            "/api/tasks",
+            new TaskItem { Title = "Dug opis", Description = new string('b', 2001) },
+            JsonOptions);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Post_InvalidStatusText_Returns400()
+    {
+        var response = await PostRawJsonAsync("{\"title\":\"Test\",\"status\":\"Banana\"}");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Post_InvalidStatusNumber_Returns400()
+    {
+        var response = await PostRawJsonAsync("{\"title\":\"Test\",\"status\":99}");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Post_MalformedJson_Returns400()
+    {
+        var response = await PostRawJsonAsync("{\"title\": \"Test\"");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Put_TitleLongerThan200_Returns400()
+    {
+        var created = await CreateTaskAsync("Kratak naslov");
+
+        var response = await _client.PutAsJsonAsync(
+            $"/api/tasks/{created.Id}",
+            new TaskItem { Title = new string('a', 201) },
+            JsonOptions);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+    
 }
+

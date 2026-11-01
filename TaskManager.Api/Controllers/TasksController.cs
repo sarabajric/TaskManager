@@ -17,6 +17,27 @@ public class TasksController : ControllerBase
         _context = context;
     }
 
+    private const int MaxTitleLength = 200;
+    private const int MaxDescriptionLength = 2000;
+
+    // Vraća poruku o grešci, ili null ako je zadatak ispravan
+    private static string? Validate(TaskItem task)
+    {
+        if (string.IsNullOrWhiteSpace(task.Title))
+            return "Title je obavezan.";
+
+        if (task.Title.Length > MaxTitleLength)
+            return $"Title može imati najviše {MaxTitleLength} znakova.";
+
+        if (task.Description is { Length: > MaxDescriptionLength })
+            return $"Description može imati najviše {MaxDescriptionLength} znakova.";
+
+        if (!Enum.IsDefined(task.Status))
+            return "Status nije ispravan.";
+
+        return null;
+    }
+
     // GET api/tasks
     [HttpGet]
     public async Task<ActionResult<IEnumerable<TaskItem>>> GetAll()
@@ -40,8 +61,9 @@ public class TasksController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<TaskItem>> Create(TaskItem task)
     {
-        if (string.IsNullOrWhiteSpace(task.Title))
-            return BadRequest("Title je obavezan.");
+                var error = Validate(task);
+        if (error != null)
+            return BadRequest(error);
 
         task.Id = 0;
         task.CreatedAt = DateTime.UtcNow;
@@ -60,8 +82,9 @@ public class TasksController : ControllerBase
         if (task == null)
             return NotFound();
 
-        if (string.IsNullOrWhiteSpace(updated.Title))
-            return BadRequest("Title je obavezan.");
+                var error = Validate(updated);
+        if (error != null)
+            return BadRequest(error);
 
         task.Title = updated.Title;
         task.Description = updated.Description;

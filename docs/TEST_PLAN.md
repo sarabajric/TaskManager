@@ -5,7 +5,7 @@
 | **Project** | Task Manager API (ASP.NET Core Web API, .NET 10, EF Core, SQLite) |
 | **Author** | Sara Bajrić |
 | **Version** | 1.0 |
-| **Status** | Unit, API and UI tests implemented and passing (22/22). |
+| **Status** | Unit, API and UI tests implemented and passing (29/29). |
 
 ## 1. Purpose
 
@@ -16,7 +16,7 @@ This document describes what is tested in the Task Manager API, how it is tested
 **In scope**
 
 - The REST endpoints under `/api/tasks` (create, read, update, delete)
-- Input validation (empty title)
+- Input validation (empty title, maximum lengths of title and description, invalid status, malformed JSON)
 - HTTP status codes and response format (JSON, enum values as text)
 - Data persistence (changes are really stored in the database)
 - Key user scenarios in the browser (add, complete and delete a task, validation message, empty list)
@@ -31,7 +31,7 @@ This document describes what is tested in the Task Manager API, how it is tested
 | Level | Tool | What it checks | Count |
 |---|---|---|---|
 | Unit | xUnit, SQLite in-memory | `TasksController` methods in isolation | 8 |
-| API (integration) | xUnit, `WebApplicationFactory` | Real HTTP requests against the whole app, temporary database | 9 |
+| API (integration) | xUnit, `WebApplicationFactory` | Real HTTP requests against the whole app, temporary database | 16 |
 | UI | Playwright (C#), Chromium headless | Key user scenarios in the browser against the real running app | 5 |
 
 ## 4. Test environment
@@ -54,6 +54,13 @@ This document describes what is tested in the Task Manager API, how it is tested
 | API-07 | PUT /api/tasks/{id} | Existing task, new title and status | 204 No Content, a following GET shows the new values |
 | API-08 | DELETE /api/tasks/{id} | Existing task | 204 No Content, a following GET returns 404 |
 | API-09 | DELETE /api/tasks/{id} | Task does not exist (id 999) | 404 Not Found |
+| API-10 | POST /api/tasks | Title has exactly 200 characters (boundary) | 201 Created |
+| API-11 | POST /api/tasks | Title has 201 characters | 400 Bad Request |
+| API-12 | POST /api/tasks | Description has 2001 characters | 400 Bad Request |
+| API-13 | POST /api/tasks | Status is an unknown text (`Banana`) | 400 Bad Request |
+| API-14 | POST /api/tasks | Status is an unknown number (99) | 400 Bad Request |
+| API-15 | POST /api/tasks | Malformed JSON | 400 Bad Request |
+| API-16 | PUT /api/tasks/{id} | Title has 201 characters | 400 Bad Request |
 
 ### 5a. UI test cases
 
@@ -96,11 +103,10 @@ Before the first UI test run, build the solution and install the browser once:
 powershell -ExecutionPolicy Bypass -File TaskManager.Tests\bin\Debug\net10.0\playwright.ps1 install chromium
 ```
 
-Latest result: `total: 22; failed: 0; succeeded: 22; skipped: 0`.
+Latest result: `total: 29; failed: 0; succeeded: 29; skipped: 0`.
 
 ## 9. Planned next steps
 
-- Additional negative tests: title longer than 200 characters, invalid status value, malformed JSON
 - Consider DTO classes so the API accepts only the fields a client is allowed to send
 
 ## 10. Continuous integration
@@ -109,5 +115,5 @@ All tests (unit, API and UI) run automatically on every push and pull request to
 
 ## 11. Known limitations and risks
 
-- The API does not validate the maximum title length itself; the limit (200 characters) is enforced only by the database configuration. An additional negative test is planned for this.
+- Defect found and fixed: the API accepted titles over 200 characters, descriptions over 2000 characters and undefined status numbers, because SQLite does not enforce the length limits configured in EF Core. Validation was added to the controller and covered by API-10 to API-16 and by regression tests.
 - Tests run against SQLite. The project is not deployed to a cloud environment, so behaviour on another database engine (for example Azure SQL) has not been verified.
