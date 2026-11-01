@@ -88,8 +88,12 @@ This document describes what is tested in the Task Manager API, how it is tested
 
 ```powershell
 dotnet test
+```
 
-Before the first UI test run, install the browser: playwright.ps1 install chromium.
+Before the first UI test run, build the solution and install the browser once:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File TaskManager.Tests\bin\Debug\net10.0\playwright.ps1 install chromium
 ```
 
 Latest result: `total: 22; failed: 0; succeeded: 22; skipped: 0`.
